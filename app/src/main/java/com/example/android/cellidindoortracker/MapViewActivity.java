@@ -18,7 +18,6 @@ import android.widget.ImageView;
 import com.qozix.tileview.TileView;
 
 import java.util.List;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -68,6 +67,8 @@ public class MapViewActivity extends Activity {
     private boolean mIsScanned = false;
     private boolean mIsAlgorithmFinished = true;
     private int mNumberProcessingThreads = 0;
+
+    private CellIDAlgorithm cellIDalgorithm;
 
     public static final int UPDATE_MAP = 1;
     public static final int SCAN_INTERVAL = 3000; // 3 seconds
@@ -140,6 +141,7 @@ public class MapViewActivity extends Activity {
      */
     private void setScanningTask(){
         mWifi = (WifiManager) getSystemService(getApplicationContext().WIFI_SERVICE);
+        cellIDalgorithm = new CellIDAlgorithm(this);
 
         mTimer = new Timer();
         mTimer.schedule(new TimerTask() {
@@ -186,13 +188,15 @@ public class MapViewActivity extends Activity {
                         e.printStackTrace();
                         Log.i("thread", "sleep exception");
                     }*/
-                    // Update IU map
-                    // Testing code
+
+
+                    /*// Testing code
                     Random r = new Random();
                     int Low = 0;
                     int High = 150;
-                    int R = r.nextInt(High-Low) + Low;
-                    mUserPosition = new Point(30, R);
+                    int R = r.nextInt(High-Low) + Low;*/
+                    mUserPosition = cellIDalgorithm.getUserPosition(results);
+
 
                     /* Call the UPDATE_MAP case method of UI Handler with user position on it */
                     Message msg = mUIHandler.obtainMessage(UPDATE_MAP, mUserPosition);
