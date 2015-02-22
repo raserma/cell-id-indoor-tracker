@@ -14,6 +14,7 @@ import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.qozix.tileview.TileView;
 
@@ -86,7 +87,18 @@ public class MapViewActivity extends Activity {
 
                     // Updates map with user position
                     mTileView.removeMarker(mMarker);
-                    mTileView.addMarker(mMarker, point.x, point.y, -0.5f, -1.0f);
+
+                    // If all AP scan results were filtered
+                    if (point.x == -10 && point.y == -10){
+                        // Toast
+                        Toast.makeText(getBaseContext(), "all ap filtered", Toast.LENGTH_SHORT)
+                                .show();
+                    }else{
+                        //mTileView.moveToAndCenter(point.x, point.y);
+                        mTileView.addMarker(mMarker, point.x, point.y, -0.5f, -1.0f);
+                        Toast.makeText(getBaseContext(), "new scan", Toast.LENGTH_SHORT)
+                                .show();
+                    }
                     break;
 
                 default:
@@ -126,7 +138,7 @@ public class MapViewActivity extends Activity {
 
         /** Marker used in CellID indoor tracker */
         mMarker = new ImageView(MapViewActivity.this);
-        mMarker.setImageResource(R.drawable.area_green);
+        mMarker.setImageResource(R.drawable.maps_marker_blue);
 
         mMarker.setAdjustViewBounds(true);
 
@@ -170,6 +182,7 @@ public class MapViewActivity extends Activity {
      *  would execute at the same time the algorithm with different data, allowing to update the
      *  map even faster, but would require better device performance.
      */
+
     public void processScanResults(final List<ScanResult> results) {
         if(results.size() > 0 && mNumberProcessingThreads <= MAX_PROCESSING_THREADS && !mIsScanned){
             /** Execute a new thread */
@@ -259,7 +272,7 @@ public class MapViewActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_map_view, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -267,14 +280,17 @@ public class MapViewActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                // Settings option clicked.
+                Intent dbmanager = new Intent(this,AndroidDatabaseManager.class);
+                startActivity(dbmanager);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
     }
 
 

@@ -3,7 +3,7 @@
 
     <string name="app_name">CellIDIndoorTracker</string>
     <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Database helper</string>
     <string name="title_activity_map_view">MapViewActivity</string>
 
 </resources>

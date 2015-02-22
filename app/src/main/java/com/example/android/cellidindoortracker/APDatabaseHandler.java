@@ -3,16 +3,22 @@ package com.example.android.cellidindoortracker;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Point;
 import android.net.wifi.ScanResult;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by raul on 20.2.2015.
+ * DatabaseHandler whose purpose is to handle all operations regarding bssids database:
+ *      - Creates database and tables
+ *      - Upgrades them if necessary
+ *      - filterKnownAPDB
+ *      - getAPPositionDB
  */
 public class APDatabaseHandler extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
@@ -27,7 +33,7 @@ public class APDatabaseHandler extends SQLiteOpenHelper {
 
     // AP MAC ADDRESS LIST
     private static final String BSSID1 = "00:17:0f:d9:71:d";
-    private static final String BSSID2 = "00:1b:0a:d9:71:d"; // Wrong MAC
+    private static final String BSSID2 = "00:17:0f:d9:6c:8";
     private static final String BSSID3 = "00:17:0f:d9:6f:d";
     private static final String BSSID4 = "f4:7f:35:f6:ab:a";
     private static final String BSSID5 = "18:33:9d:fe:9c:6";
@@ -63,8 +69,8 @@ public class APDatabaseHandler extends SQLiteOpenHelper {
         String CREATE_BSSID_TABLE = "CREATE TABLE " + TABLE_BSSIDS + "("
                 + KEY_BSSID_ID + " INTEGER PRIMARY KEY,"
                 + KEY_BSSID_NAME + " TEXT, "
-                + KEY_BSSID_POS_X + "INTEGER, "
-                + KEY_BSSID_POS_Y + "INTEGER" + ")";
+                + KEY_BSSID_POS_X + " INTEGER, "
+                + KEY_BSSID_POS_Y + " INTEGER" + ")";
         db.execSQL(CREATE_BSSID_TABLE);
         // fills bssids table
         String [] bssids = {
@@ -72,15 +78,20 @@ public class APDatabaseHandler extends SQLiteOpenHelper {
                 BSSID11, BSSID12, BSSID13, BSSID14, BSSID15, BSSID16, BSSID17, BSSID18
         };
         int [] bssidXPositions = {
-
+                44, 29, 46, 39, 50, 40, 51, 40, 32, 19,
+                15, 17, 8, 15, 17, 8, 13, 6
         };
         int [] bssidYPositions = {
-
+                11, 28, 40, 61, 72, 100, 102, 115, 138, 146,
+                123, 108, 108, 100, 83, 83, 70, 37
         };
+
+        // Fill static table with AP bssids and their positions
         ContentValues bssidValues = new ContentValues();
-        for (int i = 1; i < bssids.length + 1; i++) {
-            bssidValues.put(KEY_BSSID_NAME, bssids[i-1]);
-            // insert bssid names into bssids table
+        for (int i = 0; i < bssids.length; i++) {
+            bssidValues.put(KEY_BSSID_NAME, bssids[i]);
+            bssidValues.put(KEY_BSSID_POS_X, bssidXPositions[i]);
+            bssidValues.put(KEY_BSSID_POS_Y, bssidYPositions[i]);
             db.insert(TABLE_BSSIDS, null, bssidValues);
         }
 
@@ -104,7 +115,7 @@ public class APDatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         // Select all BSSIDs from bssids table
-        String selectQuery = "SELECT " + KEY_BSSID_NAME + " FROM " + TABLE_BSSIDS;
+        String selectQuery = "SELECT * FROM " + TABLE_BSSIDS;
         Cursor cursor = db.rawQuery(selectQuery, null);
 
         boolean apIsKnown;
@@ -117,7 +128,8 @@ public class APDatabaseHandler extends SQLiteOpenHelper {
             apIsKnown = false;
             if (cursor.moveToFirst()) {
                 for (int i = 0; i < cursor.getCount(); i++) { // Known APs in database
-                    if (removeLastDigitBssid(results.get(j).BSSID).equals(cursor.getString(0)))
+                    String test = cursor.getString(1);
+                    if (removeLastDigitBssid(results.get(j).BSSID).equals(cursor.getString(1)))
                         apIsKnown = true;
                     cursor.moveToNext();
                 }
@@ -163,5 +175,42 @@ public class APDatabaseHandler extends SQLiteOpenHelper {
             bssid = bssid.substring(0, bssid.length()-1);
         }
         return bssid;
+    }
+
+
+
+
+    /** Used to check database, help method of AndroidDatabaseManager activity */
+    public ArrayList<Cursor> getData(String Query) {
+        //get writable database
+        SQLiteDatabase sqlDB = this.getWritableDatabase();
+        String[] columns = new String[]{"mesage"};
+        //an array list of cursor to save two cursors one has results from the query
+        //other cursor stores error message if any errors are triggered
+        ArrayList<Cursor> alc = new ArrayList<Cursor>(2);
+        MatrixCursor Cursor2 = new MatrixCursor(columns);
+        alc.add(null);
+        alc.add(null);
+        try {
+            String maxQuery = Query;
+            //execute the query results will be save in Cursor c
+            Cursor c = sqlDB.rawQuery(maxQuery, null);
+            //add value to cursor2
+            Cursor2.addRow(new Object[]{"Success"});
+            alc.set(1, Cursor2);
+            if (null != c && c.getCount() > 0) {
+                alc.set(0, c);
+                c.moveToFirst();
+                return alc;
+            }
+            return alc;
+        }
+        catch (Exception ex) {
+            Log.d("printing exception", ex.getMessage());
+            //if any exceptions are triggered save the error message to cursor an return the arraylist
+            Cursor2.addRow(new Object[]{"" + ex.getMessage()});
+            alc.set(1, Cursor2);
+            return alc;
+        }
     }
 }

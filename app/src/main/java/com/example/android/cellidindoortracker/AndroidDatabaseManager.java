@@ -30,6 +30,10 @@ import android.widget.TableRow.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * This class is used for showing the database created in an easy way as an activity.
+ * Please, remove before releasing
+ */
 public class AndroidDatabaseManager extends Activity implements OnItemClickListener {
 
 //a static class to save cursor,table values etc which is used by functions to share data in the program.
@@ -52,7 +56,7 @@ public class AndroidDatabaseManager extends Activity implements OnItemClickListe
 	
 	//in the below line Change the text 'yourCustomSqlHelper' with your custom sqlitehelper class name.
 	//Do not change the variable name dbm
-	yourCustomSqlLiteHelperclass dbm;
+	APDatabaseHandler dbm;
 	TableLayout tableLayout;
 	LayoutParams tableRowParams;
 	HorizontalScrollView hsv;
@@ -71,7 +75,7 @@ public class AndroidDatabaseManager extends Activity implements OnItemClickListe
 		
 
 		//in the below line Change the text 'yourCustomSqlHelper' with your custom sqlitehelper class name
-		dbm = new yourCustomSqlLiteHelperclass(AndroidDatabaseManager.this);
+		dbm = new APDatabaseHandler(AndroidDatabaseManager.this);
 		
 		mainscrollview = new ScrollView(AndroidDatabaseManager.this);
 		
